@@ -13,4 +13,7 @@ public class CustomerEntity
         [Required]
         public string FullName { get; set; }
 
+        public List<OrderEntity> Orders { get; set; } = new List<OrderEntity>();
+        public List<TransactionEntity> Transactions { get; set; } = new List<TransactionEntity>();
+
     }

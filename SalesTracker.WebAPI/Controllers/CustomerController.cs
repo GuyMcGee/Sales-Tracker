@@ -59,18 +59,18 @@ namespace SalesTracker.WebAPI.Controllers
         
         [HttpPut]
         [Route("{id}")]
-        public async Task<IActionResult> UpdateCustomer( int customerId, CustomerEdit model)
+        public async Task<IActionResult> UpdateCustomer( int id, CustomerEdit model)
         {
             if(!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (customerId != model.Id)
+            if (id != model.Id)
             {
                 return BadRequest(ModelState);
             }
-            if (await _customerService.UpdateCustomerAsync(customerId, model))
+            if (await _customerService.UpdateCustomerAsync(id, model))
                 return Ok("success");
                 else
                 return UnprocessableEntity();

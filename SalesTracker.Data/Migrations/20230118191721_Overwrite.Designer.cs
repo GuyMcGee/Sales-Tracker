@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace SalesTracker.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230107044809_init")]
-    partial class init
+    [Migration("20230118191721_Overwrite")]
+    partial class Overwrite
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,7 +49,44 @@ namespace SalesTracker.Data.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("ItemEntity", b =>
+            modelBuilder.Entity("OrderEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CustomerEntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerEntityId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("OrderEntityProductEntity", b =>
+                {
+                    b.Property<int>("OrdersId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("OrdersId", "ProductsId");
+
+                    b.HasIndex("ProductsId");
+
+                    b.ToTable("OrderEntityProductEntity");
+                });
+
+            modelBuilder.Entity("ProductEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -67,41 +104,14 @@ namespace SalesTracker.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("OrderEntityId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ProductTypeId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OrderEntityId");
-
                     b.HasIndex("ProductTypeId");
 
-                    b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("OrderEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("TransactionEntityId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TransactionEntityId");
-
-                    b.ToTable("Order");
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("ProductTypeEntity", b =>
@@ -118,7 +128,7 @@ namespace SalesTracker.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProductType");
+                    b.ToTable("ProductTypes");
                 });
 
             modelBuilder.Entity("TransactionEntity", b =>
@@ -151,14 +161,32 @@ namespace SalesTracker.Data.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("ItemEntity", b =>
+            modelBuilder.Entity("OrderEntity", b =>
+                {
+                    b.HasOne("CustomerEntity", null)
+                        .WithMany("Orders")
+                        .HasForeignKey("CustomerEntityId");
+                });
+
+            modelBuilder.Entity("OrderEntityProductEntity", b =>
                 {
                     b.HasOne("OrderEntity", null)
-                        .WithMany("Items")
-                        .HasForeignKey("OrderEntityId");
-
-                    b.HasOne("ProductTypeEntity", "ProductType")
                         .WithMany()
+                        .HasForeignKey("OrdersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProductEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ProductsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ProductEntity", b =>
+                {
+                    b.HasOne("ProductTypeEntity", "ProductType")
+                        .WithMany("Products")
                         .HasForeignKey("ProductTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -166,23 +194,16 @@ namespace SalesTracker.Data.Migrations
                     b.Navigation("ProductType");
                 });
 
-            modelBuilder.Entity("OrderEntity", b =>
-                {
-                    b.HasOne("TransactionEntity", null)
-                        .WithMany("Orderlist")
-                        .HasForeignKey("TransactionEntityId");
-                });
-
             modelBuilder.Entity("TransactionEntity", b =>
                 {
                     b.HasOne("CustomerEntity", "Customer")
-                        .WithMany()
+                        .WithMany("Transactions")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("OrderEntity", "Order")
-                        .WithMany()
+                        .WithMany("Transactions")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -192,14 +213,21 @@ namespace SalesTracker.Data.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("OrderEntity", b =>
+            modelBuilder.Entity("CustomerEntity", b =>
                 {
-                    b.Navigation("Items");
+                    b.Navigation("Orders");
+
+                    b.Navigation("Transactions");
                 });
 
-            modelBuilder.Entity("TransactionEntity", b =>
+            modelBuilder.Entity("OrderEntity", b =>
                 {
-                    b.Navigation("Orderlist");
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("ProductTypeEntity", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,15 +9,9 @@ public class OrderEntity
         [Required]
         public string location { get; set; }
 
-        public List<ItemEntity> Items { get; set; } = new List<ItemEntity>();
+        public List<ProductEntity> Products { get; set; } = new List<ProductEntity>();
+        
+        public List<TransactionEntity> Transactions { get; set; } = new List<TransactionEntity>();
 
-        public Decimal GrandTotal
-        {
-            get
-            {
-                var grandTotal= Items.Sum(i=>i.Cost);
-                return grandTotal;
-            }
-        }
     }
 

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SalesTracker.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Overwrite : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -27,7 +27,7 @@ namespace SalesTracker.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductType",
+                name: "ProductTypes",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -36,11 +36,30 @@ namespace SalesTracker.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductType", x => x.Id);
+                    table.PrimaryKey("PK_ProductTypes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Items",
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    location = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CustomerEntityId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_Customers_CustomerEntityId",
+                        column: x => x.CustomerEntityId,
+                        principalTable: "Customers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Products",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -48,32 +67,17 @@ namespace SalesTracker.Data.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ProductTypeId = table.Column<int>(type: "int", nullable: false),
-                    OrderEntityId = table.Column<int>(type: "int", nullable: true)
+                    ProductTypeId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Items", x => x.Id);
+                    table.PrimaryKey("PK_Products", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Items_ProductType_ProductTypeId",
+                        name: "FK_Products_ProductTypes_ProductTypeId",
                         column: x => x.ProductTypeId,
-                        principalTable: "ProductType",
+                        principalTable: "ProductTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Order",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TransactionEntityId = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Order", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -97,27 +101,51 @@ namespace SalesTracker.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Transactions_Order_OrderId",
+                        name: "FK_Transactions_Orders_OrderId",
                         column: x => x.OrderId,
-                        principalTable: "Order",
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrderEntityProductEntity",
+                columns: table => new
+                {
+                    OrdersId = table.Column<int>(type: "int", nullable: false),
+                    ProductsId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderEntityProductEntity", x => new { x.OrdersId, x.ProductsId });
+                    table.ForeignKey(
+                        name: "FK_OrderEntityProductEntity_Orders_OrdersId",
+                        column: x => x.OrdersId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderEntityProductEntity_Products_ProductsId",
+                        column: x => x.ProductsId,
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Items_OrderEntityId",
-                table: "Items",
-                column: "OrderEntityId");
+                name: "IX_OrderEntityProductEntity_ProductsId",
+                table: "OrderEntityProductEntity",
+                column: "ProductsId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Items_ProductTypeId",
-                table: "Items",
+                name: "IX_Orders_CustomerEntityId",
+                table: "Orders",
+                column: "CustomerEntityId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_ProductTypeId",
+                table: "Products",
                 column: "ProductTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Order_TransactionEntityId",
-                table: "Order",
-                column: "TransactionEntityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_CustomerId",
@@ -128,40 +156,25 @@ namespace SalesTracker.Data.Migrations
                 name: "IX_Transactions_OrderId",
                 table: "Transactions",
                 column: "OrderId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Items_Order_OrderEntityId",
-                table: "Items",
-                column: "OrderEntityId",
-                principalTable: "Order",
-                principalColumn: "Id");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Order_Transactions_TransactionEntityId",
-                table: "Order",
-                column: "TransactionEntityId",
-                principalTable: "Transactions",
-                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Transactions_Order_OrderId",
-                table: "Transactions");
-
             migrationBuilder.DropTable(
-                name: "Items");
-
-            migrationBuilder.DropTable(
-                name: "ProductType");
-
-            migrationBuilder.DropTable(
-                name: "Order");
+                name: "OrderEntityProductEntity");
 
             migrationBuilder.DropTable(
                 name: "Transactions");
+
+            migrationBuilder.DropTable(
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "ProductTypes");
 
             migrationBuilder.DropTable(
                 name: "Customers");

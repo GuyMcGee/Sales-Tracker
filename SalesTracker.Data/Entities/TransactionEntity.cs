@@ -7,8 +7,6 @@ public class TransactionEntity
         [Key]
         public int Id { get; set; }
 
-        public List<OrderEntity> Orderlist { get; set; }
-
         [Required]
         public string PaymentMethod { get; set; }
 
